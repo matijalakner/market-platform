@@ -4,12 +4,16 @@
 
 namespace market {
     class Market;
+    class TraderRegistry;
+
     class Agent {
-        public:
+
+	public:
             virtual ~Agent() = default;
             virtual void step(
                 Timestamp timestamp,
-                Market& market
-            ) = 0;
+                Market& market,
+            	TraderRegistry& traders
+	    ) = 0;
     };
 }

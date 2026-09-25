@@ -1,16 +1,26 @@
 #pragma once
 
-#include "trader.hpp"
 #include "market/agents/agent.hpp"
-#include "market/agents/trader.hpp"
 
 namespace market {
     class RandomTrader : public Agent {
     public:
-        explicit RandomTrader(Trader trader);
-        void step(Timestamp timestamp, Market& market) override;
-        Trader& trader();
+        explicit RandomTrader(
+		TraderId trader_id,
+		Price reference_price,
+		std::unint64_t seed
+	);
+        void step(
+		Timestamp timestamp,
+		Market& market,
+		TraderRegistry& traders
+	) override;
+        
     private:
-        Trader trader_;
+    	TraderId trader_id_;
+	Price reference_price_;
+	std::mt19937_64 generator_;
+	std::uniform_int_distribution<int> side_distribution_;
+	std::uniform_int_distribution<int> quantity_distribution_;
     };
 }

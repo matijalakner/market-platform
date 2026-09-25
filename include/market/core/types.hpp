@@ -1,8 +1,6 @@
 #pragma once
 #include <cstdint>
 
-// Common vocabulary for the project.
-
 namespace market {
 	
 	using OrderId = std::uint64_t;
