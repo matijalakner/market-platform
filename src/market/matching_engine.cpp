@@ -40,7 +40,7 @@ namespace market {
             else { order_book_.reduce_front_order(Side::Sell, traded_quantity); }
         }
 
-        if (incoming.quantity > 0) { order_book_.add_order(incoming); }
+        if (incoming.quantity > 0 && incoming.type == OrderType::Limit) { order_book_.add_order(incoming); }
         return trades;
     }
 
@@ -73,7 +73,7 @@ namespace market {
             else { order_book_.reduce_front_order(Side::Buy, traded_quantity); }
         }
 
-        if (incoming.quantity > 0) { order_book_.add_order(incoming); }
+        if (incoming.quantity > 0 && incoming.type == OrderType::Limit) { order_book_.add_order(incoming); }
         return trades;
     }
 }

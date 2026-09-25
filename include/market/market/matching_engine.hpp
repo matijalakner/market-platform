@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "order_book.hpp"
-#include "trade.hpp"
+#include "../agents/trade.hpp"
 #include "market/market/order_book.hpp"
 #include "market/market/trade.hpp"
 
