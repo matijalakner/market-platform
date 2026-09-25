@@ -12,8 +12,11 @@ namespace market {
 		current_time_(0),
 		market_(market),
 		fundamental_value_(fundamental_value),
-		traders_(traders)
+		traders_(traders),
+		settlement_(traders)
 	{}
+
+	void Simulation::add_agent(std::unique_ptr<Agent> agent) { agents_.push_back(std::move(agent)); }
     
 	void Simulation::run() {
         	for (std::size_t i = 0; i < config_.steps; ++i) {
@@ -33,7 +36,8 @@ namespace market {
 			agent->step(
 				current_time_,
 				market_,
-				traders_
+				traders_,
+				settlement_
 			);
 		}
     	}

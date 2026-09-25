@@ -12,6 +12,7 @@ namespace market {
 		std::unint64_t seed
 	) 
 	      	: trader_id_(trader_id),
+		reference_price_(reference_price),
 		generator_(seed),
 		side_distribution_(0, 1),
 		quantity_distribution_(1, 10)
@@ -20,7 +21,8 @@ namespace market {
 	void RandomTrader::step(
 		Timestamp timestamp, 
 		Market& market,
-		TraderRegistry& traders
+		TraderRegistry& traders,
+		Settlement& settlement
 	) {
         	Trader* trader = traders.find_trader(trader_id_);
 		if (trader == nullptr) { return; }
@@ -50,6 +52,10 @@ namespace market {
 			.timestamp = timestamp
 		};
 
-		market.submit_order(order);
+		std::vector<Trader> traders = market.submit_order(order);
+
+		for (const Trade& trade : trades) {
+			settlement.settle(trade);
+		}
 	}
 }
