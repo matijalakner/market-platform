@@ -24,73 +24,63 @@ The project is designed to make it easy to experiment with different market stru
 
 ```text
 market-model/
-├── CMakeLists.txt
-├── README.md
-├── LICENSE
 │
 ├── include/
 │   └── market/
 │       ├── core/
 │       │   ├── types.hpp
-│       │   ├── time.hpp
-│       │   └── config.hpp
+│       │   ├── config.hpp
+│       │   └── id_generator.hpp
 │       │
 │       ├── market/
-│       │   ├── market.hpp
-│       │   ├── order_book.hpp
 │       │   ├── order.hpp
+│       │   ├── order_book.hpp
+│       │   ├── matching_engine.hpp
 │       │   ├── trade.hpp
-│       │   └── matching_engine.hpp
+│       │   ├── market.hpp
+│       │   └── settlement.hpp
 │       │
 │       ├── agents/
 │       │   ├── agent.hpp
-│       │   ├── random_trader.hpp
-│       │   ├── fundamental_trader.hpp
-│       │   └── market_maker.hpp
+│       │   ├── trader.hpp
+│       │   ├── trader_registry.hpp
+│       │   └── random_trader.hpp
 │       │
 │       ├── models/
 │       │   ├── price_model.hpp
-│       │   ├── volatility_model.hpp
-│       │   └── fundamental_model.hpp
+│       │   ├── fundamental_value.hpp
+│       │   └── random_walk_model.hpp
 │       │
-│       ├── simulation/
-│       │   ├── simulation.hpp
-│       │   ├── event_queue.hpp
-│       │   └── scheduler.hpp
-│       │
-│       └── statistics/
-│           ├── statistics.hpp
-│           ├── returns.hpp
-│           └── metrics.hpp
+│       └── simulation/
+│           └── simulation.hpp
 │
 ├── src/
+│   ├── core/
+│   │   └── id_generator.cpp
+│   │
 │   ├── market/
+│   │   ├── order.cpp
+│   │   ├── order_book.cpp
+│   │   ├── matching_engine.cpp
+│   │   ├── market.cpp
+│   │   └── settlement.cpp
+│   │
 │   ├── agents/
+│   │   ├── trader.cpp
+│   │   ├── trader_registry.cpp
+│   │   └── random_trader.cpp
+│   │
 │   ├── models/
-│   ├── simulation/
-│   └── statistics/
+│   │   ├── fundamental_value.cpp
+│   │   └── random_walk_model.cpp
+│   │
+│   └── simulation/
+│       └── simulation.cpp
 │
-├── tests/
-│   ├── market/
-│   ├── agents/
-│   └── models/
-│
-├── examples/
-│   ├── basic_market.cpp
-│   ├── agent_market.cpp
-│   └── market_maker.cpp
-│
-├── configs/
-│   ├── basic.json
-│   └── agents.json
-│
-├── data/
-│   ├── input/
-│   └── output/
-│
-└── scripts/
-    ├── run_simulation.py
-    └── analyze_results.py
+└── tests/
+    ├── market/
+    ├── agents/
+    └── models/
 ```
 
 ## Architecture
