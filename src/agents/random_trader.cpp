@@ -34,8 +34,19 @@ namespace market {
 			side_value == 0
 			? Side::Buy
 			: Side::Sell;
+
+		Price price;
+		auto mid = market.mid_price();
+
+		if (bid.has_value()) {
+			price = mid.value();
+		} else if (market.has_traded()) {
+			price = market.last_trade_price();
+		} else {
+			price = reference_price_;
+		}
 		
-		double order_value = reference_price_ * static_cast<double>(quantity);
+		double order_value = price * static_cast<double>(quantity);
 		if (side == Side::Buy) {
 			if (trader->cash() < order_value) { return; }
 		} else {
@@ -47,7 +58,7 @@ namespace market {
 			.trader_id = trader->id,
 			.side = side,
 			.type = OrderType::Limit,
-			.price = reference_price_,
+			.price = price,
 			.quantity = quantity,
 			.timestamp = timestamp
 		};

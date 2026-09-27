@@ -37,10 +37,10 @@ int main() {
 		.timestamp = 2
 	);
 
-	auto trades = market.submit_orde(buy_order;
+	auto trades = market.submit_orde(buy_order);
 	assert(trades.size() == 1);
 
-	bool suddess = settlement.settle(trades[0]);
+	bool success = settlement.settle(trades[0]);
 	assert(success);
 
 	auto* buyer_ptr = traders.find_trader(1);
