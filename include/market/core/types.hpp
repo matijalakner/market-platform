@@ -19,5 +19,12 @@ namespace market {
 		Market,
 		Limit
 	};
-
+	
+	enum class Side {
+		New,
+		Open,
+		PartiallyFilled,
+		Filled,
+		Cancelled
+	};
 }

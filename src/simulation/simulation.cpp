@@ -37,7 +37,8 @@ namespace market {
 				current_time_,
 				market_,
 				traders_,
-				settlement_
+				settlement_,
+				fundamental_value_
 			);
 		}
     	}

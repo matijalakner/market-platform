@@ -1,17 +1,29 @@
 #pragma once
 
-#include "market/core/types.hpp"
+#include "market/agents/agent.hpp"
 
 namespace market {
 
-class FundamentalValue
-{
-public:
-    explicit FundamentalValue(Price initial_value);
-    Price value() const;
-    void set_value(Price value);
+	class FundamentalValue;
 
-private:
-    Price value_;
-};
+	class FundamentalTrader : public Agent {
+		public:
+    			FundamentalTrader(
+				TraderId trader_id,
+				Price threshold,
+				Quantity order_quantity
+			);
+
+			void step(
+				Timestamp timestamp,
+				Market& market,
+				TraderRegistry& traders,
+				Settlement& settlement
+			) override;
+
+		private:
+    			TraderId trader_id_;
+			Price threshold_;
+			Quantity order_quantity_;
+	};
 }

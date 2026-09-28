@@ -22,7 +22,8 @@ namespace market {
 		Timestamp timestamp, 
 		Market& market,
 		TraderRegistry& traders,
-		Settlement& settlement
+		Settlement& settlement,
+		FundamentalValue& fundamental_value
 	) {
         	Trader* trader = traders.find_trader(trader_id_);
 		if (trader == nullptr) { return; }
@@ -48,9 +49,9 @@ namespace market {
 		
 		double order_value = price * static_cast<double>(quantity);
 		if (side == Side::Buy) {
-			if (trader->cash() < order_value) { return; }
+			if (!trader->reserve_cash(order_value)) { return; }
 		} else {
-			if (trader->asset_quantity() < quantity) { return; }
+			if (!trader->reserve_assets(quantity)) { return; }
 		}
 
 		Order = order{

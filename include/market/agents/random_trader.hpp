@@ -14,7 +14,8 @@ namespace market {
 			Timestamp timestamp,
 			Market& market,
 			TraderRegistry& traders,
-			Settlement& settlement
+			Settlement& settlement,
+			FundamentalValue& fundamental_value
 		) override;
         
     	private:
