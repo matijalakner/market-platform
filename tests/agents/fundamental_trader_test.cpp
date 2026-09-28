@@ -9,7 +9,7 @@
 
 class ConstantPriceModel : public market::PriceModel {
 	public:
-		market::Price next_price(market::PRice current_price) override
+		market::Price next_price(market::Price current_price) override
 		{
 			return current_price;
 		}

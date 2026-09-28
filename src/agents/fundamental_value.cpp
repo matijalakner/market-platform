@@ -55,9 +55,9 @@ namespace market {
 
 		Price order_value = market_price * static_cast<double>(order_quantity_);
 		if (side == Side::Buy) {
-			if (trader->cash() < order_value) { return; }
+			if (trader->avaliable_cash() < order_value) { return; }
 		} else {
-			if (trader->asset_quantity() < order_quantity_) { return; }
+			if (trader->avaliable_assets() < order_quantity_) { return; }
 		}
 
 		Order order {
@@ -65,8 +65,10 @@ namespace market {
 			.trader_id = trader_id_,
 			.side = side,
 			.type = OrderType::Limit,
+			.status = market::OrderStatus::New,
 			.price = market_price,
 			.quantity = order_quantity_,
+			.original_quantity = order_quantity_,
 			.timestamp = timestamp
 		}
 

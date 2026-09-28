@@ -43,8 +43,7 @@ int main() {
 
 	assert(trader.available_assets() == 100);
 
-	bool reserved =
-	    trader.reserve_assets(60);
+	bool reserved = trader.reserve_assets(60);
 
 	assert(reserved);
 
@@ -52,8 +51,7 @@ int main() {
 	assert(trader.reserved_assets() == 60);
 	assert(trader.available_assets() == 40);
 
-	bool consumed =
-	    trader.consume_reserved_assets(20);
+	bool consumed = trader.consume_reserved_assets(20);
 
 	assert(consumed);
 		
