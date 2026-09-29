@@ -4,7 +4,7 @@
 
 int main() {
 	market::OrderId order_id = 1;
-	market::TraderId trated_id = 42;
+	market::TraderId trader_id = 42;
 
 	market::Price price = 100.50;
 	market::Quantity quantity = 10;
