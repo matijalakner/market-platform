@@ -3,21 +3,27 @@
 #include "market/agents/random_trader.hpp"
 #include "market/agents/trader_registry.hpp"
 #include "market/market/market.hpp"
+#include "market/market/settlement.hpp"
+#include "market/models/fundamental_value.hpp"
+#include "market/models/random_walk_model.hpp"
 
 int main() {
-	market::Trader trader(1, 10000.0, 100);
-	market::TraderRegistry traders;
-	market::Market market;
-	market::RandomTrader random_trader(1, 100.0, 12345);
+    market::TraderRegistry traders;
+    traders.add_trader(market::Trader(1, 10000.0, 100));
 
-	traders.add_trader(trader);
-	random_trader.step(1, market, traders);
+    market::Market market(traders);
+    market::Settlement settlement(traders);
 
-	const auto& book = market.order_book();
-	bool has_orders = book.has_bids() || book.has_asks();
+    market::RandomWalkModel model(0.0, 1.0, 1);
+    market::FundamentalValue fundamental(100.0, model);
 
-	assert(has_orders);
+    market::RandomTrader random_trader(1, 100.0, 12345);
+    random_trader.step(1, market, traders, settlement, fundamental);
 
-	return 0;
+    const auto& book = market.order_book();
+    bool has_orders = book.has_bids() || book.has_asks();
+
+    assert(has_orders);
+
+    return 0;
 }
-	

@@ -3,22 +3,24 @@
 #include "market/core/types.hpp"
 
 namespace market {
-    struct Trade {
-        TradeId id;
 
-        OrderId buy_order_id;
-        OrderId sell_order_id;
+struct Trade {
+    TradeId id = 0;
 
-        TraderId buyer_id;
-        TraderId seller_id;
+    OrderId buy_order_id = 0;
+    OrderId sell_order_id = 0;
 
-        Price price;
-        Quantity quantity;
+    TraderId buyer_id = 0;
+    TraderId seller_id = 0;
 
-        Timestamp timestamp;
+    Price price = 0.0;
+    Quantity quantity = 0;
 
-        double value() const {
-            return price * static_cast<double>(quantity);
-        }
-    };
-}
+    Timestamp timestamp = 0;
+
+    double value() const {
+        return price * static_cast<double>(quantity);
+    }
+};
+
+}  // namespace market

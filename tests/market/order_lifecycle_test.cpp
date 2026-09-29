@@ -20,28 +20,28 @@ int main() {
     assert(order.is_active());
     assert(order.filled_quantity() == 0);
 
-    order.mark_open();
-
+    assert(order.mark_open());
     assert(order.is_active());
 
     order.quantity = 40;
-    order.mark_partially_filled();
+    assert(order.mark_partially_filled());
 
     assert(order.is_active());
     assert(order.filled_quantity() == 60);
 
     order.quantity = 0;
-    order.mark_filled();
-    
+    assert(order.mark_filled());
+
     assert(!order.is_active());
     assert(order.filled_quantity() == 100);
+    assert(!order.mark_cancelled());  // finished orders cannot be cancelled
 
     order.quantity = 100;
     order.status = market::OrderStatus::Open;
 
     assert(order.is_active());
 
-    order.mark_cancelled();
+    assert(order.mark_cancelled());
 
     assert(!order.is_active());
     assert(order.filled_quantity() == 0);

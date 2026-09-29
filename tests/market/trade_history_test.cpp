@@ -5,7 +5,7 @@
 int main() {
     market::TradeHistory history;
 
-    market::Trade trade {
+    market::Trade trade{
         .id = 1,
         .buy_order_id = 10,
         .sell_order_id = 20,
@@ -14,7 +14,7 @@ int main() {
         .price = 50.0,
         .quantity = 10,
         .timestamp = 123
-    }
+    };
 
     history.add_trade(trade);
 

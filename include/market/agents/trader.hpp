@@ -3,46 +3,45 @@
 #include "market/core/types.hpp"
 
 namespace market {
-	class Trader {
-	public:
-		Trader(
-            		Trader_Id id,
-            		double cash,
-            		Quantity asset_quantity
-        	);
 
-		TraderId id() const;
+class Trader {
+public:
+    Trader(TraderId id, double cash, Quantity asset_quantity);
 
-		double cash() const;
-		double avaliable_cash() const;
-		double reserved_cash() const;
+    TraderId id() const;
 
-        	Quantity asset_quantity() const;
-		Quantity avaliable_assets() const;
-		Quantity reserved_assets() const;
+    double cash() const;
+    double available_cash() const;
+    double reserved_cash() const;
 
-        	void add_cash(double amount);
-        	bool remove_cah(double amount);
+    Quantity asset_quantity() const;
+    Quantity available_assets() const;
+    Quantity reserved_assets() const;
 
-		bool reserve_cash(double amount);
-		bool release_cash(double amount);
+    void add_cash(double amount);
+    bool remove_cash(double amount);
 
-        	void add_asset(Quantity quantity);
-        	bool remove_asset(Quantity quantity);
-		
-		bool reserve_assets(Quantity quantity);
-		bool release_assets(Quantity quantity);
-		
-		bool consume_reserved_cash(double amount);
-		bool consume_reserved_assets(Quantity quantity);
+    bool reserve_cash(double amount);
+    bool release_cash(double amount);
 
-    	private:
-        	TraderId id_;
+    void add_assets(Quantity quantity);
+    bool remove_assets(Quantity quantity);
 
-        	double cash_;
-		double reserved_cash_;
-        	
-		Quantity asset_quantity_;
-		Quantity reserved_quantity_;
-	};
-}
+    bool reserve_assets(Quantity quantity);
+    bool release_assets(Quantity quantity);
+
+    // Spend reserved cash / hand over reserved assets (used when settling).
+    bool consume_reserved_cash(double amount);
+    bool consume_reserved_assets(Quantity quantity);
+
+private:
+    TraderId id_;
+
+    double cash_;
+    double reserved_cash_;
+
+    Quantity asset_quantity_;
+    Quantity reserved_assets_;
+};
+
+}  // namespace market

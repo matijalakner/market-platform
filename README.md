@@ -1,557 +1,253 @@
 # C++ Market Model
 
-A modular C++ framework for simulating financial markets, including order books, traders, market-making strategies, price models, and market dynamics.
+A small, modular C++20 framework for simulating a financial market with a limit order book, simulated traders and a pluggable model for the asset's fundamental value.
 
-The project is designed to make it easy to experiment with different market structures and trading-agent behaviors while keeping the core market mechanics independent from the models being tested.
+The core market mechanics (order book, matching, settlement) know nothing about trading strategies. Strategies live in agents, and the price dynamics live in replaceable models.
 
 ## Features
 
-* Limit order book
-* Market and limit orders
-* Order matching engine
-* Multiple simulated traders
-* Configurable trading strategies
-* Fundamental-value models
-* Price and volatility models
-* Market-making agents
-* Event-driven simulation
-* Configurable simulation parameters
-* Market statistics and performance metrics
-* Reproducible simulations through configurable random seeds
-* Unit tests for core components
+* Limit order book with price-time priority
+* Limit and market orders, with partial fills
+* Matching engine (trades execute at the resting order's price)
+* Cash and asset reservation, so traders cannot spend the same funds twice
+* Settlement of trades between traders
+* Order registry (order status tracking) and trade history
+* Market statistics: best bid/ask, mid price, spread, last price, volume, VWAP
+* Agents: `RandomTrader` and `FundamentalTrader`
+* Fundamental-value model with a replaceable `PriceModel` (a seeded `RandomWalkModel` is included)
+* Step-based simulation loop
+* Reproducible runs through explicit random seeds
+* Unit tests for every component
 
-## Project Structure
+## Project structure
 
 ```text
 market-model/
-│
-├── include/
-│   └── market/
-│       ├── core/
-│       │   ├── types.hpp
-│       │   ├── config.hpp
-│       │   └── id_generator.hpp
-│       │
-│       ├── market/
-│       │   ├── order.hpp
-│       │   ├── order_book.hpp
-│       │   ├── matching_engine.hpp
-│       │   ├── trade.hpp
-│       │   ├── market.hpp
-│       │   └── settlement.hpp
-│       │
-│       ├── agents/
-│       │   ├── agent.hpp
-│       │   ├── trader.hpp
-│       │   ├── trader_registry.hpp
-│       │   └── random_trader.hpp
-│       │
-│       ├── models/
-│       │   ├── price_model.hpp
-│       │   ├── fundamental_value.hpp
-│       │   └── random_walk_model.hpp
-│       │
-│       └── simulation/
-│           └── simulation.hpp
-│
-├── src/
-│   ├── core/
-│   │   └── id_generator.cpp
-│   │
-│   ├── market/
-│   │   ├── order.cpp
-│   │   ├── order_book.cpp
-│   │   ├── matching_engine.cpp
-│   │   ├── market.cpp
-│   │   └── settlement.cpp
-│   │
-│   ├── agents/
-│   │   ├── trader.cpp
-│   │   ├── trader_registry.cpp
-│   │   └── random_trader.cpp
-│   │
-│   ├── models/
-│   │   ├── fundamental_value.cpp
-│   │   └── random_walk_model.cpp
-│   │
-│   └── simulation/
-│       └── simulation.cpp
-│
+├── CMakeLists.txt
+├── include/market/
+│   ├── core/          types.hpp, config.hpp, id_generator.hpp
+│   ├── market/        order, trade, order_book, matching_engine, match_result,
+│   │                  order_registry, trade_history, settlement, market
+│   ├── agents/        agent, trader, trader_registry, random_trader, fundamental_trader
+│   ├── models/        price_model, fundamental_value, random_walk_model
+│   └── simulation/    simulation.hpp
+├── src/               implementations, mirroring include/market/
+├── examples/
+│   ├── main.cpp               minimal hello-world executable
+│   └── basic_simulation.cpp   runnable simulation demo
 └── tests/
-    ├── market/
-    ├── agents/
-    └── models/
+    ├── market/  agents/  models/
+    └── types_test.cpp
 ```
 
 ## Architecture
 
-The model is divided into several independent layers:
-
 ```text
-                    ┌─────────────────┐
-                    │   Simulation    │
-                    └────────┬────────┘
-                             │
-                    ┌────────▼────────┐
-                    │ Event Scheduler │
-                    └────────┬────────┘
-                             │
-                 ┌───────────▼───────────┐
-                 │         Market        │
-                 │                       │
-                 │    Order Book         │
-                 │    Matching Engine    │
-                 │    Trade Generation   │
-                 └───────────┬───────────┘
-                             │
-             ┌───────────────┼───────────────┐
-             │               │               │
-             ▼               ▼               ▼
-        ┌──────────┐   ┌──────────┐   ┌────────────┐
-        │ Trader A │   │ Trader B │   │ Market     │
-        │          │   │          │   │ Maker      │
-        └──────────┘   └──────────┘   └────────────┘
+              ┌──────────────┐
+              │  Simulation  │  clock, updates fundamental value, activates agents
+              └──────┬───────┘
+                     │ step()
+              ┌──────▼───────┐        ┌────────────────────┐
+              │    Agents    │───────▶│  FundamentalValue  │
+              │ (strategies) │ reads  │  └─ PriceModel     │
+              └──────┬───────┘        └────────────────────┘
+                     │ submit_order()
+              ┌──────▼───────────────────────────────┐
+              │ Market                                │
+              │  ├─ reserves cash / assets            │
+              │  ├─ MatchingEngine ─▶ OrderBook       │
+              │  ├─ OrderRegistry (order status)      │
+              │  └─ TradeHistory, statistics          │
+              └──────┬───────────────────────────────┘
+                     │ trades
+              ┌──────▼───────┐
+              │  Settlement  │  moves cash and assets between TraderRegistry entries
+              └──────────────┘
 ```
 
-### Market
+### Order flow
 
-The market is responsible for the mechanics of trading.
+1. An agent builds an `Order` and calls `Market::submit_order`.
+2. The market checks the order and **reserves** what it could cost: `price * quantity` in cash for a buy, or `quantity` assets for a sell. If the trader cannot afford it, the order is rejected and an empty vector is returned.
+3. The `MatchingEngine` matches the order against the book. Any unfilled part of a limit order rests in the book. The unfilled part of a market order is discarded.
+4. The market records the trades, updates the counterparties' orders, and returns any cash saved by price improvement, that is, buying cheaper than the limit price.
+5. The agent passes each returned trade to `Settlement::settle`, which consumes the reserved cash and assets and moves them to the other side.
 
-Typical components include:
-
-* `Order`
-* `OrderBook`
-* `MatchingEngine`
-* `Trade`
-* `Market`
-
-The market should not need to know why a trader decided to submit an order.
-
-### Agents
-
-Agents represent participants in the market.
-
-Examples:
-
-* Random traders
-* Fundamental traders
-* Momentum traders
-* Noise traders
-* Arbitrage traders
-* Market makers
-
-Each agent can observe market information and generate orders according to its strategy.
-
-### Models
-
-Models describe the underlying dynamics of the simulated market.
-
-Possible models include:
-
-* Fundamental value
-* Volatility
-* Price dynamics
-* Order arrival
-* News/information
-* Liquidity
-
-Models should be replaceable without requiring changes to the core matching engine.
-
-### Simulation
-
-The simulation layer controls the passage of time and execution of events.
-
-Responsibilities include:
-
-* Simulation clock
-* Event scheduling
-* Agent activation
-* Market updates
-* Random-number generation
-* Experiment configuration
-* Simulation termination
-
-### Statistics
-
-The statistics layer collects and calculates market-level measurements.
-
-Examples:
-
-* Mid price
-* Last traded price
-* Returns
-* Volatility
-* Trading volume
-* Bid/ask spread
-* Market depth
-* Price impact
-* Trader P&L
-* Inventory
-* Order arrival rates
-
-## Basic Simulation Flow
-
-A typical simulation step looks like:
-
-```text
-1. Advance simulation clock
-          │
-          ▼
-2. Update fundamental / market state
-          │
-          ▼
-3. Select active trader(s)
-          │
-          ▼
-4. Trader observes market
-          │
-          ▼
-5. Trader generates order
-          │
-          ▼
-6. Order enters order book
-          │
-          ▼
-7. Matching engine executes orders
-          │
-          ▼
-8. Trades update positions and cash
-          │
-          ▼
-9. Record market statistics
-          │
-          ▼
-10. Continue to next event
-```
-
-## Example Order
-
-A basic order can contain:
-
-```cpp
-struct Order
-{
-    uint64_t id;
-    uint64_t trader_id;
-
-    Side side;
-    OrderType type;
-
-    double price;
-    uint64_t quantity;
-
-    uint64_t timestamp;
-};
-```
-
-Possible order types:
-
-```cpp
-enum class OrderType
-{
-    Market,
-    Limit
-};
-```
-
-Possible sides:
-
-```cpp
-enum class Side
-{
-    Buy,
-    Sell
-};
-```
-
-## Example Trader Interface
-
-Strategies should implement a common interface so that different types of traders can be substituted easily.
-
-```cpp
-class Trader
-{
-public:
-    virtual ~Trader() = default;
-
-    virtual Order generate_order(
-        const MarketState& market
-    ) = 0;
-};
-```
-
-For example:
-
-```cpp
-class RandomTrader : public Trader
-{
-public:
-    Order generate_order(
-        const MarketState& market
-    ) override;
-};
-```
-
-This allows the simulation to operate on traders without knowing which strategy they use.
+> **Note on market buy orders:** the `price` field of a market buy is the maximum price the trader will pay. This is needed to know how much cash to reserve, and the order will not trade above it. Market buys with `price <= 0` are rejected. Market sells ignore `price`.
 
 ## Building
 
-The project uses CMake.
-
 ### Requirements
 
-* C++20-compatible compiler
+* A C++20 compiler (GCC 10+, Clang 12+, MSVC 2019+)
 * CMake 3.20+
-* Git
-* Optional: Python 3.x for analysis scripts
 
-### Configure
+### Configure and build
 
 ```bash
 cmake -S . -B build
-```
-
-### Build
-
-```bash
 cmake --build build
 ```
 
-### Run
+Options:
 
-For example:
+| Option | Default | Meaning |
+|---|---|---|
+| `BUILD_TESTS` | `ON` | Build the unit tests |
+| `BUILD_EXAMPLES` | `ON` | Build the example executables |
 
-```bash
-./build/market_simulation
-```
+If you do not set `CMAKE_BUILD_TYPE`, the build defaults to `Debug`.
 
-The exact executable name may depend on the CMake configuration.
-
-## Running Tests
-
-Build the project with tests enabled:
+### Run the example
 
 ```bash
-cmake -S . -B build -DBUILD_TESTS=ON
-cmake --build build
+./build/basic_simulation
 ```
 
-Run:
+Example output:
+
+```text
+Agent activated at t = 1
+...
+Final time: 10
+Final fundamental value: 98.5069
+Trades executed: 18
+```
+
+On Windows with Visual Studio, executables are in `build/Debug/` (for example `build\Debug\basic_simulation.exe`).
+
+### Run the tests
 
 ```bash
-ctest --test-dir build
+ctest --test-dir build --output-on-failure
 ```
 
-## Configuration
+The tests use `assert`, and the build turns off `NDEBUG` for them, so they also work in Release builds.
 
-Simulation parameters should preferably be stored outside the C++ source code.
+## Usage example
 
-Example:
+```cpp
+#include <memory>
 
-```json
-{
-    "simulation": {
-        "steps": 100000,
-        "seed": 12345
-    },
+#include "market/agents/fundamental_trader.hpp"
+#include "market/agents/random_trader.hpp"
+#include "market/agents/trader_registry.hpp"
+#include "market/core/config.hpp"
+#include "market/market/market.hpp"
+#include "market/models/fundamental_value.hpp"
+#include "market/models/random_walk_model.hpp"
+#include "market/simulation/simulation.hpp"
 
-    "market": {
-        "initial_price": 100.0,
-        "tick_size": 0.01
-    },
+int main() {
+    market::SimulationConfig config;
+    config.steps = 1000;
 
-    "agents": {
-        "random_traders": 100,
-        "fundamental_traders": 50,
-        "market_makers": 5
-    }
+    // Fundamental value follows a seeded random walk.
+    market::RandomWalkModel model(/*drift*/ 0.0, /*volatility*/ 0.5, /*seed*/ 42);
+    market::FundamentalValue fundamental(100.0, model);
+
+    // Trader(id, cash, asset_quantity)
+    market::TraderRegistry traders;
+    traders.add_trader(market::Trader(1, 10000.0, 100));
+    traders.add_trader(market::Trader(2, 10000.0, 100));
+
+    market::Market market(traders);
+    market::Simulation sim(config, market, fundamental, traders);
+
+    // RandomTrader(id, reference_price, seed)
+    sim.add_agent(std::make_unique<market::RandomTrader>(1, 100.0, 1));
+    // FundamentalTrader(id, threshold, order_quantity)
+    sim.add_agent(std::make_unique<market::FundamentalTrader>(2, 0.02, 5));
+
+    sim.run();
 }
 ```
 
-Keeping configuration separate makes it easier to run multiple experiments without recompiling the application.
+### Writing your own agent
 
-## Reproducibility
-
-Every simulation should support an explicit random seed.
-
-For example:
+Implement `market::Agent`. On each step the agent gets the market, the trader registry, the settlement service and the current fundamental value:
 
 ```cpp
-std::mt19937_64 rng(seed);
-```
-
-Using the same:
-
-* configuration
-* initial state
-* random seed
-* simulation version
-
-should produce the same simulation results, assuming deterministic execution.
-
-## Experiments
-
-Experiments can be organized by configuration rather than by modifying source code.
-
-For example:
-
-```text
-experiments/
-├── baseline/
-│   └── config.json
-├── high_volatility/
-│   └── config.json
-├── many_market_makers/
-│   └── config.json
-└── high_trading_activity/
-    └── config.json
-```
-
-This makes it possible to compare different market conditions systematically.
-
-## Output
-
-Simulation output can be written to CSV or another machine-readable format.
-
-Example:
-
-```text
-timestamp,price,volume,bid,ask,spread
-0,100.00,0,99.99,100.01,0.02
-1,100.01,10,100.00,100.02,0.02
-2,100.03,5,100.02,100.04,0.02
-```
-
-Trader-level output could contain:
-
-```text
-timestamp,trader_id,cash,inventory,pnl
-0,1,10000,0,0
-1,1,9990,100,0
-2,1,10005,50,15
-```
-
-## Design Principles
-
-### Separation of concerns
-
-The exchange should not contain trading-strategy logic.
-
-```text
-Trader → Order → Market → Trade
-```
-
-Rather than:
-
-```text
-Trader → directly modify price
-```
-
-### Replaceable models
-
-Models should use interfaces where appropriate so that implementations can be swapped.
-
-For example:
-
-```cpp
-class PriceModel
-{
+class MyAgent : public market::Agent {
 public:
-    virtual ~PriceModel() = default;
+    void step(market::Timestamp t,
+              market::Market& market,
+              market::TraderRegistry& traders,
+              market::Settlement& settlement,
+              market::FundamentalValue& fundamental) override {
+        market::Order order;
+        order.trader_id = 1;
+        order.side = market::Side::Buy;
+        order.type = market::OrderType::Limit;
+        order.price = 99.5;
+        order.quantity = 10;
+        order.timestamp = t;
 
-    virtual double next_price(
-        double current_price,
-        double dt
-    ) = 0;
+        for (const auto& trade : market.submit_order(order)) {
+            settlement.settle(trade);
+        }
+    }
 };
 ```
 
-### Deterministic core
+Leave `order.id` as `0` to have the market assign a unique ID. Do not reserve cash or assets yourself, because the market does that.
 
-The core market engine should be deterministic given the same sequence of orders.
+### Writing your own price model
 
-This makes debugging and testing substantially easier.
+```cpp
+class MyModel : public market::PriceModel {
+public:
+    market::Price next_price(market::Price current) override {
+        return current * 1.001;
+    }
+};
+```
 
-### Minimal global state
+Pass it to `FundamentalValue` in place of `RandomWalkModel`.
 
-Avoid global variables for:
+## Included agents and models
 
-* prices
-* orders
-* traders
-* random-number generators
-* simulation time
+| Component | Behaviour |
+|---|---|
+| `RandomTrader` | Each step, buys or sells 1–10 units at the mid price (or the last trade price, or a reference price if the market is empty). |
+| `FundamentalTrader` | Compares the market price with the fundamental value. Buys if the market is cheaper than fundamental by more than `threshold`, sells if it is more expensive, and otherwise holds. |
+| `RandomWalkModel` | `price + drift + volatility * N(0, 1)`. It is additive, so prices can become negative with large volatility. |
 
-Pass state explicitly through the relevant components.
+## Design principles
 
-## Development Roadmap
+* **Separation of concerns:** `Trader → Order → Market → Trade`. Agents never change prices directly.
+* **Replaceable models:** price dynamics sit behind the `PriceModel` interface.
+* **Deterministic core:** given the same sequence of orders, the market produces the same result. Randomness lives only in agents and models, and takes an explicit seed.
+* **No global state:** the market, traders, registries and RNGs are passed in explicitly.
 
-### Phase 1 — Core Market
+## Roadmap
 
-* [ ] `Order`
-* [ ] `Trade`
-* [ ] `OrderBook`
-* [ ] `MatchingEngine`
-* [ ] Basic market
-* [ ] Unit tests
+Implemented:
 
-### Phase 2 — Simulation
+- [x] `Order`, `Trade`, `OrderBook`, `MatchingEngine`, `Market`
+- [x] Order registry and trade history
+- [x] Cash and asset reservation, settlement
+- [x] Trader accounts and registry
+- [x] Random and fundamental traders
+- [x] Fundamental value with a random-walk model
+- [x] Simulation loop and simulation config
+- [x] Unit tests
 
-* [ ] Simulation clock
-* [ ] Event queue
-* [ ] Random-number management
-* [ ] Configuration system
-* [ ] Simulation loop
+Ideas for the future:
 
-### Phase 3 — Agents
-
-* [ ] Base trader
-* [ ] Random trader
-* [ ] Fundamental trader
-* [ ] Market maker
-* [ ] Trader positions
-* [ ] Cash/P&L accounting
-
-### Phase 4 — Market Models
-
-* [ ] Fundamental value
-* [ ] Volatility
-* [ ] News events
-* [ ] Order-arrival process
-* [ ] Alternative price models
-
-### Phase 5 — Analysis
-
-* [ ] Return calculation
-* [ ] Volatility statistics
-* [ ] Liquidity metrics
-* [ ] Spread analysis
-* [ ] Volume analysis
-* [ ] P&L analysis
-* [ ] Python visualization tools
-
-## Possible Future Extensions
-
-The architecture can later be extended to support:
-
-* Multiple assets
-* Multiple exchanges
-* Cross-asset trading
-* Transaction costs
-* Latency
-* Partial order fills
-* Order cancellation
-* Order expiration
-* Short selling
-* Borrowing/leverage
-* Dividends
-* News shocks
-* Limit-order-book reconstruction
-* Reinforcement-learning agents
-* Calibration against historical data
-* Parallel Monte Carlo experiments
+- [ ] Market maker agent
+- [ ] Momentum / noise / arbitrage traders
+- [ ] Statistics module (returns, volatility, depth, P&L) and CSV output
+- [ ] Configuration from JSON files
+- [ ] Event scheduler and random agent activation
+- [ ] Multiplicative price models, volatility models, news shocks
+- [ ] Tick sizes, transaction costs, short selling, latency
+- [ ] Python analysis scripts
 
 ## Disclaimer
 
-This project is intended for research, experimentation, and educational purposes. A simulated market model is necessarily a simplified representation of real financial markets and should not be assumed to reproduce real-world market behavior or investment outcomes.
+This project is intended for research, experimentation and education. A simulated market is a simplified model and should not be assumed to reproduce real-world market behaviour or investment outcomes.
 
+## License
+
+MIT. See `LICENSE`.

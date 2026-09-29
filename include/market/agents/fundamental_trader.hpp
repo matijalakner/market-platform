@@ -4,26 +4,26 @@
 
 namespace market {
 
-	class FundamentalValue;
+class FundamentalTrader : public Agent {
+public:
+    FundamentalTrader(
+        TraderId trader_id,
+        Price threshold,
+        Quantity order_quantity
+    );
 
-	class FundamentalTrader : public Agent {
-		public:
-    			FundamentalTrader(
-				TraderId trader_id,
-				Price threshold,
-				Quantity order_quantity
-			);
+    void step(
+        Timestamp timestamp,
+        Market& market,
+        TraderRegistry& traders,
+        Settlement& settlement,
+        FundamentalValue& fundamental_value
+    ) override;
 
-			void step(
-				Timestamp timestamp,
-				Market& market,
-				TraderRegistry& traders,
-				Settlement& settlement
-			) override;
+private:
+    TraderId trader_id_;
+    Price threshold_;
+    Quantity order_quantity_;
+};
 
-		private:
-    			TraderId trader_id_;
-			Price threshold_;
-			Quantity order_quantity_;
-	};
-}
+}  // namespace market

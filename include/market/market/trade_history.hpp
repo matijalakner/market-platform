@@ -1,23 +1,27 @@
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include "market/market/trade.hpp"
 
 namespace market {
-    class TradeHistory {
-        public:
-            void add_trade(const Trade& trade);
-            const Trade* find_trade(TradeId trade_id) const;
 
-            const std::vector<Trade>& trades() const;
+class TradeHistory {
+public:
+    void add_trade(const Trade& trade);
+    const Trade* find_trade(TradeId trade_id) const;
 
-            std::vector<Trade> trades_for_order(OrderId order_id) const;
-            std::vector<Trade> trades_for_trader(TraderId trader_id) const;
+    const std::vector<Trade>& trades() const;
 
-            std::size_t size() const;
+    std::vector<Trade> trades_for_order(OrderId order_id) const;
+    std::vector<Trade> trades_for_trader(TraderId trader_id) const;
 
-        private:
-            std::vector<Trade> trades_;
-    }
-}
+    std::size_t size() const;
+    bool empty() const;
+
+private:
+    std::vector<Trade> trades_;
+};
+
+}  // namespace market

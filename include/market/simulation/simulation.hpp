@@ -3,40 +3,44 @@
 #include <memory>
 #include <vector>
 
+#include "market/agents/agent.hpp"
+#include "market/agents/trader_registry.hpp"
 #include "market/core/config.hpp"
 #include "market/core/types.hpp"
-#include "market/models/fundamental_value.hpp"
 #include "market/market/market.hpp"
-#include "market/agents/trader_registry.hpp"
+#include "market/market/settlement.hpp"
+#include "market/models/fundamental_value.hpp"
 
 namespace market {
-    	class Simulation {
-    	public:
-        	Simulation(
-            		const SimulationConfig& config,
-            		Market& market,
-            		FundamentalValue& fundamental_value,
-        		TraderRegistry& traders
-		);
-        	
-		void add_agent(std::unique_ptr<Agent> agent);
 
-		void run();
-        	Timestamp current_time() const;
-        	Price fundamental_value() const;
+class Simulation {
+public:
+    Simulation(
+        const SimulationConfig& config,
+        Market& market,
+        FundamentalValue& fundamental_value,
+        TraderRegistry& traders
+    );
 
-    	private:
-        	SimulationConfig config_;
-        	Timestamp current_time_;
+    void add_agent(std::unique_ptr<Agent> agent);
 
-        	Market& market_;
-        	FundamentalValue& fundamental_value_;
-		TraderRegistry& traders_;
+    void run();
+    Timestamp current_time() const;
+    Price fundamental_value() const;
 
-		Settlement settlement_;
+private:
+    SimulationConfig config_;
+    Timestamp current_time_;
 
-		std::vector<std::unique_ptr<Agent>> agents_;
+    Market& market_;
+    FundamentalValue& fundamental_value_;
+    TraderRegistry& traders_;
 
-		void step();
-	};
-}
+    Settlement settlement_;
+
+    std::vector<std::unique_ptr<Agent>> agents_;
+
+    void step();
+};
+
+}  // namespace market

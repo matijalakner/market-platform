@@ -6,8 +6,10 @@
 #include "market/market/trade.hpp"
 
 namespace market {
-    struct MatchResult {
-        Order order;
-        std::vector<Trade> trades;
-    };
-}
+
+struct MatchResult {
+    Order order;
+    std::vector<Trade> trades;
+};
+
+}  // namespace market

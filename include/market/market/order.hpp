@@ -1,70 +1,68 @@
 #pragma once
 
-#include "core/types.hpp"
+#include "market/core/types.hpp"
 
 namespace market {
-	struct Order {
-		OrderId id;
-		TraderId trader_id;
-		
-		Side side;
-		OrderType type;
-		OrderStratus status;
 
-		Price price;
-		
-		Quantity quantity;
-		Quantity original_quantity;
+struct Order {
+    OrderId id = 0;
+    TraderId trader_id = 0;
 
-		double reserved_cash;
-		Quantity reserved_assets;
+    Side side = Side::Buy;
+    OrderType type = OrderType::Limit;
+    OrderStatus status = OrderStatus::New;
 
-		Timestamp timestamp;
+    // For limit orders: the limit price.
+    // For market buy orders: the maximum price the trader is willing to pay
+    // (needed so the right amount of cash can be reserved).
+    Price price = 0.0;
 
-		bool is_active() const {
-			return status == OrderStatus::New || status == OrderStatus::Open || status == OrderStatus::PartiallyFilled;
-		}
+    Quantity quantity = 0;           // remaining quantity
+    Quantity original_quantity = 0;
 
-		Quantity filled_quantity() const {
-			return original_quantity- quantity;
-		}
+    double reserved_cash = 0.0;
+    Quantity reserved_assets = 0;
 
-		bool mark_open() const {
-			if (status != OrderStatus::New) {
-				return false;
-			}
+    Timestamp timestamp = 0;
 
-			status = OrderStatus::Open;
-			return true;
-		}
-		bool mark_partially_filled() const {
-			if (status != OrderStatus::Open) {
-				return false;
-			}
+    bool is_active() const {
+        return status == OrderStatus::New ||
+               status == OrderStatus::Open ||
+               status == OrderStatus::PartiallyFilled;
+    }
 
-			status = OrderStatus::PartiallyFilled;
-			return true;
-		}
-		bool mark_filled() const {
-			if (status != OrderStatus::Open) {
-				return false;
-			}
+    Quantity filled_quantity() const {
+        return original_quantity - quantity;
+    }
 
-			status = OrderStatus::Filled;
-			return true;
-		}
-		bool mark_cancelled() const {
-			if (status != OrderStatus::Open) {
-				return false;
-			}
+    bool mark_open() {
+        if (status != OrderStatus::New) { return false; }
+        status = OrderStatus::Open;
+        return true;
+    }
 
-			status = OrderStatus::Cancelled;
-			return true;
-		};
-	};
-}
+    bool mark_partially_filled() {
+        if (status != OrderStatus::Open && status != OrderStatus::PartiallyFilled) { return false; }
+        status = OrderStatus::PartiallyFilled;
+        return true;
+    }
 
-bool is_market_order() const;
-bool is_limit_order() const;
-bool is_buy() const;
-bool is_sell() const;
+    bool mark_filled() {
+        if (status != OrderStatus::Open && status != OrderStatus::PartiallyFilled) { return false; }
+        status = OrderStatus::Filled;
+        return true;
+    }
+
+    bool mark_cancelled() {
+        if (!is_active()) { return false; }
+        status = OrderStatus::Cancelled;
+        return true;
+    }
+
+    bool is_market_order() const { return type == OrderType::Market; }
+    bool is_limit_order() const { return type == OrderType::Limit; }
+    bool is_buy() const { return side == Side::Buy; }
+    bool is_sell() const { return side == Side::Sell; }
+};
+
+}  // namespace market

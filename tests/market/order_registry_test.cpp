@@ -5,7 +5,7 @@
 int main() {
     market::OrderRegistry registry;
 
-    market::Order order {
+    market::Order order{
         .id = 1,
         .trader_id = 10,
         .side = market::Side::Buy,
@@ -20,6 +20,7 @@ int main() {
     };
 
     assert(registry.add_order(order));
+    assert(!registry.add_order(order));  // duplicate id
     assert(registry.size() == 1);
 
     const market::Order* found = registry.find_order(1);
@@ -30,9 +31,9 @@ int main() {
     assert(found->quantity == 100);
 
     order.quantity = 50;
-    order.mark_paritally_filled();
+    assert(order.mark_partially_filled());
 
-    assert(registry.update_order(1));
+    assert(registry.update_order(order));
 
     found = registry.find_order(1);
 
@@ -44,14 +45,16 @@ int main() {
 
     assert(trader_orders.size() == 1);
 
-    order.mark_filled();
+    assert(order.mark_filled());
     order.quantity = 0;
-    registry.update_order(order);
+    assert(registry.update_order(order));
     found = registry.find_order(1);
 
     assert(found->status == market::OrderStatus::Filled);
     assert(found->quantity == 0);
     assert(found->original_quantity == 100);
+
+    assert(registry.find_order(2) == nullptr);
 
     return 0;
 }
