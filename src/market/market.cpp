@@ -12,7 +12,11 @@ namespace market {
 		return order_book_;
 	}
 
-	const std::vector<Trade>& Market::trade_history() const {
+	const OrderRegistry& Market::order_registry() const {
+		return order_registry_;
+	}
+
+	const TradeHistory& Market::trade_history() const {
 		return trade_history_;
 	}
 	
@@ -95,17 +99,38 @@ namespace market {
 			order.reserved_assets = order.quantity;
 		}
 
-		order.status = OrderStatus::Open;
+		if (!order.mark_open()) {
+			return {};
+		}
+
+		if (!order_registry_.add_order(order)) {
+			if (order.side == Side::Buy) {
+				trader->release_cash(order.reserved_cash);
+			} else {
+				trader->release_assets(order.reserved_assets);
+			}
+
+			return {};
+		}
 		
 		MatchResult result = matkching_engine_.submit_order(order);
-		Order resulting_order = result.order;
-		std::vector<Trade> trades = result.trades;
+		order_registry_.update_order(result.order);
 
-		return trades;
+		for (auto& trade : result.trades) {
+
+			trade.id = trade_id_generator_.next();
+			trade_history_.add_trade(trade);
+		
+			last_trade_price_ = trade.price;
+			total_volume_ += trade.quantity;
+			total_traded_value_ += trade.value();
+ 		}
+
+		return result.trades;
 	}
 
 	bool Market::cancel_order(OrderId order_id) {
-		Order* order = order_book_.find_order(order_id);
+		Order* order = order_registry_.find_order(order_id);
 
 		if (order == nullptr) {
 			return false;
@@ -121,16 +146,45 @@ namespace market {
 		}
 
 		if (order.side == Side::Buy) {
-			trader->release_cash(order->reserved_cash);
+			if (!trader->release_cash(order->reserved_cash)) {
+				return false;
+			}
+
+			order->reserved_cash = 0.0;
 		} else {
-			trader->release_assets(order->reserved_assets);
+			if (!trader->release_assets(order->reserved_assets)) {
+				return false;
+			}
+
+			order->reserved_assets = 0;
 		}
 
-		order->reserved_cash = 0.0;
-		order->reserved_assets = 0;
-
-		order->status = OrderStatus::Cancelled;
+		order->mark_cancelled();
 
 		return order_book_.remove_order(order_id);
+	}
+
+	std::size_t Market::trade_count() const {
+		return trade_history_.size();
+	}
+
+	const Order* Market::get_order(OrderId order_id) const {
+		return order_registry_.find_order(order_id);
+	}
+
+	std::vector<Order> Market::orders_for_trader(TraderId trader_id) const {
+		return order_registry_.orders_for_trader(trader_id);
+	}
+
+	double Market::total_traded_value() const {
+		return total_traded_value_;
+	}
+
+	double Market::vwap() const {
+		if (total_volume_ == 0) {
+			return 0.0;
+		}
+
+		return total_traded_value_ / static_cast<double>(total_volume_);
 	}
 }

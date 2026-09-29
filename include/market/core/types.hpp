@@ -4,6 +4,7 @@
 namespace market {
 	
 	using OrderId = std::uint64_t;
+	using TradeId = std::uint64_t;
 	using TraderId = std::uint64_t;
 	using TimeStamp = std::uint64_t;
 
