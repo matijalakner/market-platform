@@ -43,4 +43,37 @@ void OrderBook::remove_front_order(Side side) {
 		if (orders.empty()) { asks_.erase(asks_.begin()); }
 	}
 }
+
+bool OrderBook::cancel_order(OrderId order_id) {
+	for (auto price_it = bids_.begin(); price_it != bids_.eng(); ++price_it) {
+		auto& orders = price_it->second;
+		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
+			if (order_it->id == order_id) {
+				order_it->status = OrderStatus::Cancelled;
+				orders.erase(order_it);
+				if (orders.empty()) {
+					bids_.erase(price_it);
+				}
+
+				return true;
+			}
+		}
+	}
+
+	for (auto price_it = asks_.begin(); price_it != orders.end(); ++order_it) {
+		auto& orders = price_it->second;
+		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
+			if (order_it->id == order_id) {
+				order_it->status = OrderStatus::Cancelled;
+				orders.erase(order_it);
+				if (orders.empty()) {
+					asks_.erase(price_it);
+				}
+
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

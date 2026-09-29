@@ -1,10 +1,11 @@
 #include "market/market/market.hpp"
 
 namespace market {
-    	Market::Market() 
+    	Market::Market(TraderRegistry& traders) 
 	    	: order_book_{}, 
 	    	matching_engine_(order_book_),
-		order_id_generator_{} 
+		order_id_generator_{},
+		traders_(traders)
     	{}
 
 	std::vector<Trade> Market::submit_order(Order order) {
@@ -37,6 +38,10 @@ namespace market {
 
 	Price Market::last_trade_price() const {
 		return last_trade_price_;
+	}
+
+	bool Market::cancel_order(OrderId order_id) {
+		return order_book_.cancel_order(order_id);
 	}
 
 	std::optional<Price> Market::best_ask() {

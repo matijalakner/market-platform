@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../code/types.hpp"
+#include "../core/types.hpp"
 
 namespace market {
 	struct Order {
@@ -16,10 +16,17 @@ namespace market {
 		Quantity quantity;
 		Quantity original_quantity;
 
+		double reserved_cash;
+		Quantity reserved_assets;
+
 		Timestamp timestamp;
 
 		bool is_active() const {
 			return status == OrderStatus::New || status == OrderStatus::Open || status == OrderStatus::PartiallyFilled;
+		}
+
+		Quantity filled_quantity() const {
+			return original_quantity- quantity;
 		}
 	};
 }

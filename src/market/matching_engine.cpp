@@ -26,6 +26,8 @@ namespace market {
 		
 			if (resting.quantity == 0) {
 				resting.status = OrderStatus::Filled;
+				order_book_.remove_front_order(Side::Sell);
+				continue;
 			} else {
 				resting.status = OrderStatus::PartiallyFilled;
 			}
@@ -108,4 +110,3 @@ namespace market {
 		return trades;
 	}
 }
-

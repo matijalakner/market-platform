@@ -20,6 +20,7 @@ namespace market {
 		void remove_front_order(Side side);
 		Order& front_order(Side side);
 		void reduce_front_order(Side side, Quantity quantity);
+		bool cancel_order(OrderId order_id);
 	private:
 		using BidBook = std::map<Price, std::deque<Order>, std::greater<Price>>;
 		using AskBook = std::map<Price, std::deque<Order>, std::less<Price>>;
