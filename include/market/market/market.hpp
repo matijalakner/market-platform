@@ -11,14 +11,15 @@ namespace market {
 
     	class Market {
 		public:
-        		explicit Market(TraderRegistry& traders);
-        		std::vector<Trader> submit_order(Order order);
-        		const OrderBook& order_book() const;
+			explicit Market(TraderRegistry& traders);
+			std::vector<Trader> submit_order(Order order);
+			const OrderBook& order_book() const;
 			const std::vector<Trade>& trade_history() const;
 			bool has_traded() const;
 			Price last_trade_price() const;
 			Quantity total_volume() const;
 			bool cancel_order(OrderId order_id);
+			std::vector<Trade> submit_order(Order order);
 
 			std::optional<Price> best_ask() const;
 			std::optional<Price> best_bid() const;

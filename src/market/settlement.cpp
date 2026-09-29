@@ -1,5 +1,4 @@
 #include "../../include/market/market/settlement.hpp"
-#include "market/market/settlement.hpp"
 
 namespace market {
     Settlement::Settlement(TraderRegistry& traders) : traders_(traders) {}

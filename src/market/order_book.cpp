@@ -49,7 +49,7 @@ bool OrderBook::cancel_order(OrderId order_id) {
 		auto& orders = price_it->second;
 		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
 			if (order_it->id == order_id) {
-				order_it->status = OrderStatus::Cancelled;
+				order_it->mark_cancelled();
 				orders.erase(order_it);
 				if (orders.empty()) {
 					bids_.erase(price_it);
@@ -64,13 +64,69 @@ bool OrderBook::cancel_order(OrderId order_id) {
 		auto& orders = price_it->second;
 		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
 			if (order_it->id == order_id) {
-				order_it->status = OrderStatus::Cancelled;
+				order_it->mark_cancelled();
 				orders.erase(order_it);
 				if (orders.empty()) {
 					asks_.erase(price_it);
 				}
 
 				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+Order* OrderBook::find_order(OrderId order_id) {
+	for (auto& [price, orders] : bids_) {
+		for (auto& order: orders) {
+			if (order.id == order_id) {
+				return &order;
+			}
+		}
+	}
+
+	for (auto& [price, orders] : asks_) {
+		for (auto& order : orders) {
+			if (order.id == order_id) {
+				return &order;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+bool OrderBook::remove_order(OrderId order_id) {
+	for (auto price_it = bids_.begin(); price_it != bids_.end(); ++price_it) {
+		auto& orders = price_it->second;
+
+		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
+			if (order_it->id == order_id) {
+
+				orders.erase(order_it);
+
+				if (orders.empty()) {
+					bids_.erase(price_it);
+				}
+				return true
+			}
+		}
+	}
+
+	for (auto price_it = asks_.begin(); price_it != asks_.end(); ++price_it) {
+		auto& orders = price_it->second;
+
+		for (auto order_it = orders.begin(); order_it != orders.end(); ++order_it) {
+			if (order_it->id == order_id) {
+
+				orders.erase(order_it);
+
+				if (orders.empty()) {
+					bids_.erase(price_it);
+				}
+				return true
 			}
 		}
 	}

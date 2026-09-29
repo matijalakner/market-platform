@@ -1,5 +1,4 @@
 #include "../../include/market/models/random_walk_model.hpp"
-#include "market/models/random_walk_model.hpp"
 
 namespace market {
     RandomWalkModel::RandomWalkModel(

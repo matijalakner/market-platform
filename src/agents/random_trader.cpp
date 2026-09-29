@@ -6,7 +6,7 @@
 #include "market/market/order.hpp"
 
 namespace market {
-    	RandomTrader::RandomTrader(
+    RandomTrader::RandomTrader(
 		TraderId trader_id,
 		Price reference_price,
 		std::unint64_t seed
@@ -23,9 +23,8 @@ namespace market {
 		Market& market,
 		TraderRegistry& traders,
 		Settlement& settlement,
-		FundamentalValue& fundamental_value
-	) {
-        	Trader* trader = traders.find_trader(trader_id_);
+		FundamentalValue& fundamental_value) {
+        Trader* trader = traders.find_trader(trader_id_);
 		if (trader == nullptr) { return; }
 
 		int side_value = side_distribution_(generator_);
@@ -68,6 +67,5 @@ namespace market {
 
 		for (const Trade& trade : trades) {
 			settlement.settle(trade);
-		}
-	}
+		}}
 }

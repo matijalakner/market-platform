@@ -1,5 +1,4 @@
 #include "../../include/market/simulation/simulation.hpp"
-#include "market/simulation/simulation.cpp"
 
 namespace market {
 	Simulation::Simulation(

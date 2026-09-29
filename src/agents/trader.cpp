@@ -1,19 +1,19 @@
 #include "market/agents/trader.hpp"
 
 namespace market {
-    	Trader::Trader(
-        	TraderId id,
-        	double cash,
-        	Quantity quantity
-    	)
-        	: id_(id),
-          	cash_(cash),
+    Trader::Trader(
+		TraderId id,
+		double cash,
+		Quantity quantity
+	)
+		: id_(id),
+		cash_(cash),
 		reserved_cash_(0.0),
-          	asset_quantity_(quantity),
+		asset_quantity_(quantity),
 		reserved_assets_(0)
-    	{}
+	{}
 
-    	TraderId Trader::id() const { 
+    TraderId Trader::id() const { 
 		return id_; 
 	}
     	
@@ -29,7 +29,7 @@ namespace market {
 		return cash_ - reserved_cash_;
 	}
 
-    	Quantity Trader::asset_quantity() const { 
+    Quantity Trader::asset_quantity() const { 
 		return asset_quantity_; 
 	}
 
@@ -69,13 +69,13 @@ namespace market {
 		return true;
 	}
 
-    	void Trader::add_cash(double amount) { 
+    void Trader::add_cash(double amount) { 
 		if (amount >= 0.0) {
 			cash_ += amount;
 		}
 	}
 
-    	bool Trader::remove_cash(double amount) {
+    bool Trader::remove_cash(double amount) {
         	if (cash_ >= amount && amount >= 0.0) {
 	           	cash_ -= amount;
         	    	return true;
