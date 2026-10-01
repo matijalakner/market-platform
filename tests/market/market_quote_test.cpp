@@ -16,7 +16,7 @@ int main() {
         .trader_id = 1,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 99.0,
+        .price = 99,
         .quantity = 10,
         .timestamp = 1
     };
@@ -26,7 +26,7 @@ int main() {
         .trader_id = 2,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 101.0,
+        .price = 101,
         .quantity = 10,
         .timestamp = 2
     };
@@ -36,10 +36,10 @@ int main() {
 
     assert(market.best_bid().has_value());
     assert(market.best_ask().has_value());
-    assert(market.best_bid().value() == 99.0);
-    assert(market.best_ask().value() == 101.0);
+    assert(market.best_bid().value() == 99);
+    assert(market.best_ask().value() == 101);
     assert(market.mid_price().has_value());
-    assert(market.mid_price().value() == 100.0);
+    assert(market.mid_price().value() == 100);
     assert(market.spread().value() == 2.0);
 
     return 0;

@@ -7,13 +7,11 @@
 
 namespace market {
 
+// Additive random walk in ticks: price + drift + volatility * N(0, 1).
+// The result is rounded to a whole tick and never drops below one tick.
 class RandomWalkModel : public PriceModel {
 public:
-    RandomWalkModel(
-        double drift,
-        double volatility,
-        std::uint64_t seed
-    );
+    RandomWalkModel(double drift, double volatility, std::uint64_t seed);
 
     Price next_price(Price current_price) override;
 

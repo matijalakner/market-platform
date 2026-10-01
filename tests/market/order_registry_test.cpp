@@ -11,7 +11,7 @@ int main() {
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
         .status = market::OrderStatus::Open,
-        .price = 100.0,
+        .price = 100,
         .quantity = 100,
         .original_quantity = 100,
         .reserved_cash = 10000.0,

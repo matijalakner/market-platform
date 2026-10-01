@@ -9,12 +9,15 @@ namespace {
 constexpr double kEpsilon = 1e-9;
 }
 
-Trader::Trader(TraderId id, double cash, Quantity quantity)
+Trader::Trader(TraderId id, double cash, Position position, Quantity short_limit)
     : id_(id),
       cash_(cash),
       reserved_cash_(0.0),
-      asset_quantity_(quantity),
-      reserved_assets_(0) {}
+      position_(position),
+      reserved_assets_(0),
+      short_limit_(short_limit),
+      initial_cash_(cash),
+      initial_position_(position) {}
 
 TraderId Trader::id() const { return id_; }
 
@@ -22,9 +25,16 @@ double Trader::cash() const { return cash_; }
 double Trader::reserved_cash() const { return reserved_cash_; }
 double Trader::available_cash() const { return cash_ - reserved_cash_; }
 
-Quantity Trader::asset_quantity() const { return asset_quantity_; }
+Position Trader::asset_quantity() const { return position_; }
 Quantity Trader::reserved_assets() const { return reserved_assets_; }
-Quantity Trader::available_assets() const { return asset_quantity_ - reserved_assets_; }
+Quantity Trader::short_limit() const { return short_limit_; }
+
+Quantity Trader::available_assets() const {
+    Position headroom = position_
+                      + static_cast<Position>(short_limit_)
+                      - static_cast<Position>(reserved_assets_);
+    return headroom > 0 ? static_cast<Quantity>(headroom) : 0;
+}
 
 void Trader::add_cash(double amount) {
     if (amount >= 0.0) { cash_ += amount; }
@@ -37,12 +47,12 @@ bool Trader::remove_cash(double amount) {
 }
 
 void Trader::add_assets(Quantity quantity) {
-    asset_quantity_ += quantity;
+    position_ += static_cast<Position>(quantity);
 }
 
 bool Trader::remove_assets(Quantity quantity) {
     if (quantity > available_assets()) { return false; }
-    asset_quantity_ -= quantity;
+    position_ -= static_cast<Position>(quantity);
     return true;
 }
 
@@ -80,10 +90,26 @@ bool Trader::consume_reserved_cash(double amount) {
 }
 
 bool Trader::consume_reserved_assets(Quantity quantity) {
-    if (quantity > reserved_assets_ || quantity > asset_quantity_) { return false; }
+    if (quantity > reserved_assets_) { return false; }
     reserved_assets_ -= quantity;
-    asset_quantity_ -= quantity;
+    position_ -= static_cast<Position>(quantity);  // may go negative (short)
     return true;
+}
+
+double Trader::charge_fee(double amount) {
+    if (amount <= 0.0) { return 0.0; }
+    double charged = std::min(amount, std::max(0.0, cash_));
+    cash_ -= charged;
+    return charged;
+}
+
+double Trader::equity(Price mark_price) const {
+    return cash_ + static_cast<double>(position_) * static_cast<double>(mark_price);
+}
+
+double Trader::pnl(Price mark_price) const {
+    double initial = initial_cash_ + static_cast<double>(initial_position_) * static_cast<double>(mark_price);
+    return equity(mark_price) - initial;
 }
 
 }  // namespace market

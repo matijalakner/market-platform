@@ -1,5 +1,6 @@
 #include "market/agents/random_trader.hpp"
 
+#include "market/agents/agent_utils.hpp"
 #include "market/agents/trader.hpp"
 #include "market/agents/trader_registry.hpp"
 #include "market/market/market.hpp"
@@ -33,20 +34,11 @@ void RandomTrader::step(
     Quantity quantity = static_cast<Quantity>(quantity_distribution_(generator_));
     Side side = side_value == 0 ? Side::Buy : Side::Sell;
 
-    Price price;
-    auto mid = market.mid_price();
-
-    if (mid.has_value()) {
-        price = mid.value();
-    } else if (market.has_traded()) {
-        price = market.last_trade_price();
-    } else {
-        price = reference_price_;
-    }
+    Price price = reference_price(market, reference_price_);
 
     // Market::submit_order reserves cash/assets itself (and rejects the
     // order if the trader can't afford it), so don't reserve here too.
-    double order_value = price * static_cast<double>(quantity);
+    double order_value = static_cast<double>(price) * static_cast<double>(quantity);
     if (side == Side::Buy) {
         if (trader->available_cash() < order_value) { return; }
     } else {

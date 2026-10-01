@@ -29,7 +29,21 @@ auto* find_in(Book& book, OrderId order_id) {
     return static_cast<decltype(&book.begin()->second.front())>(nullptr);
 }
 
+template <typename Book>
+Quantity depth_of(const Book& book, std::size_t levels) {
+    Quantity total = 0;
+    std::size_t seen = 0;
+    for (const auto& level : book) {
+        if (levels != 0 && seen++ >= levels) { break; }
+        for (const auto& order : level.second) { total += order.quantity; }
+    }
+    return total;
+}
+
 }  // namespace
+
+Quantity OrderBook::bid_depth(std::size_t levels) const { return depth_of(bids_, levels); }
+Quantity OrderBook::ask_depth(std::size_t levels) const { return depth_of(asks_, levels); }
 
 void OrderBook::add_order(const Order& order) {
     if (order.side == Side::Buy) {

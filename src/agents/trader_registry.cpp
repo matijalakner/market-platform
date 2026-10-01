@@ -23,4 +23,8 @@ std::size_t TraderRegistry::size() const {
     return traders_.size();
 }
 
+const std::unordered_map<TraderId, Trader>& TraderRegistry::traders() const {
+    return traders_;
+}
+
 }  // namespace market

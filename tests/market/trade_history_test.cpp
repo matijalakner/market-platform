@@ -11,7 +11,7 @@ int main() {
         .sell_order_id = 20,
         .buyer_id = 100,
         .seller_id = 200,
-        .price = 50.0,
+        .price = 50,
         .quantity = 10,
         .timestamp = 123
     };
@@ -23,7 +23,7 @@ int main() {
     const market::Trade* found = history.find_trade(1);
 
     assert(found != nullptr);
-    assert(found->price == 50.0);
+    assert(found->price == 50);
     assert(found->quantity == 10);
     assert(found->value() == 500.0);
 

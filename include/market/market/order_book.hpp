@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <deque>
 #include <functional>
 #include <map>
@@ -17,6 +18,10 @@ public:
     bool has_asks() const;
     std::optional<Price> best_bid() const;
     std::optional<Price> best_ask() const;
+
+    // Total resting quantity in the best `levels` price levels (0 = all levels).
+    Quantity bid_depth(std::size_t levels = 0) const;
+    Quantity ask_depth(std::size_t levels = 0) const;
 
     void remove_front_order(Side side);
     Order& front_order(Side side);

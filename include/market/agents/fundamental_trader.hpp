@@ -8,7 +8,7 @@ class FundamentalTrader : public Agent {
 public:
     FundamentalTrader(
         TraderId trader_id,
-        Price threshold,
+        double threshold,
         Quantity order_quantity
     );
 
@@ -22,7 +22,7 @@ public:
 
 private:
     TraderId trader_id_;
-    Price threshold_;
+    double threshold_;
     Quantity order_quantity_;
 };
 

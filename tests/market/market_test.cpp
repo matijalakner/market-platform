@@ -15,7 +15,7 @@ int main() {
         .trader_id = 10,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 100.0,
+        .price = 100,
         .quantity = 50,
         .timestamp = 1
     };
@@ -35,7 +35,7 @@ int main() {
         .trader_id = 20,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 100.0,
+        .price = 100,
         .quantity = 20,
         .timestamp = 2
     };
@@ -43,7 +43,7 @@ int main() {
     trades = market.submit_order(buy_order);
 
     assert(trades.size() == 1);
-    assert(trades[0].price == 100.0);
+    assert(trades[0].price == 100);
     assert(trades[0].quantity == 20);
 
     const market::Order* resting = market.get_order(1);
@@ -65,7 +65,7 @@ int main() {
         .trader_id = 20,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 1000.0,
+        .price = 1000,
         .quantity = 1000,
         .timestamp = 3
     };

@@ -8,7 +8,7 @@ int main() {
         .trader_id = 42,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 100.50,
+        .price = 100,
         .quantity = 100,
         .timestamp = 1
     };
@@ -17,7 +17,7 @@ int main() {
     assert(order.trader_id == 42);
     assert(order.side == market::Side::Buy);
     assert(order.type == market::OrderType::Limit);
-    assert(order.price == 100.50);
+    assert(order.price == 100);
     assert(order.quantity == 100);
     assert(order.timestamp == 1);
     assert(order.status == market::OrderStatus::New);

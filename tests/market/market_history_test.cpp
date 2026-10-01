@@ -16,7 +16,7 @@ int main() {
         .trader_id = 2,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 100.0,
+        .price = 100,
         .quantity = 20,
         .timestamp = 1
     };
@@ -27,7 +27,7 @@ int main() {
         .trader_id = 1,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 100.0,
+        .price = 100,
         .quantity = 20,
         .timestamp = 2
     };
@@ -36,7 +36,7 @@ int main() {
     assert(trades.size() == 1);
 
     assert(market.trade_history().size() == 1);
-    assert(market.last_trade_price() == 100.0);
+    assert(market.last_trade_price() == 100);
     assert(market.total_volume() == 20);
     assert(market.vwap() == 100.0);
 

@@ -9,8 +9,13 @@ using TradeId = std::uint64_t;
 using TraderId = std::uint64_t;
 using Timestamp = std::uint64_t;
 
-using Price = double;
+// Prices are integers: a number of ticks. The size of one tick in currency
+// units is configuration (SimulationConfig::tick_size) and only matters when
+// converting to/from human-readable values.
+using Price = std::uint64_t;
 using Quantity = std::uint64_t;
+// Signed asset holding (negative = short).
+using Position = std::int64_t;
 
 enum class Side {
     Buy,

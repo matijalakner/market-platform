@@ -12,6 +12,9 @@ public:
     Price value() const;
     void update();
 
+    // News: multiplies the value by (1 + relative_shock), e.g. -0.05 = -5%.
+    void apply_shock(double relative_shock);
+
 private:
     Price value_;
     PriceModel& model_;

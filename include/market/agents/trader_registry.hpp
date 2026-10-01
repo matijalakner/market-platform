@@ -14,6 +14,7 @@ public:
     Trader* find_trader(TraderId id);
     const Trader* find_trader(TraderId id) const;
     std::size_t size() const;
+    const std::unordered_map<TraderId, Trader>& traders() const;
 
 private:
     std::unordered_map<TraderId, Trader> traders_;

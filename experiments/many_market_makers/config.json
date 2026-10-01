@@ -1,0 +1,38 @@
+{
+    "simulation": {
+        "steps": 5000,
+        "seed": 12345,
+        "activation_probability": 0.5,
+        "random_order": true
+    },
+    "market": {
+        "initial_price": 100.0,
+        "tick_size": 0.01
+    },
+    "traders": {
+        "cash": 10000,
+        "assets": 100
+    },
+    "model": {
+        "type": "gbm",
+        "mu": 0.0,
+        "sigma": 0.001
+    },
+    "agents": {
+        "random_traders": 10,
+        "fundamental_traders": 30,
+        "market_makers": 10,
+        "momentum_traders": 3,
+        "noise_traders": 5,
+        "arbitrage_traders": 10
+    },
+    "agent_params": {
+        "market_maker_half_spread": 0.05,
+        "order_quantity": 10,
+        "arbitrage_threshold": 0.005
+    },
+    "output": {
+        "directory": "output/many_market_makers",
+        "trader_interval": 10
+    }
+}

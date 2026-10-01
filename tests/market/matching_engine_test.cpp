@@ -12,7 +12,7 @@ int main() {
         .trader_id = 10,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 100.00,
+        .price = 100,
         .quantity = 100,
         .timestamp = 1
     });
@@ -23,7 +23,7 @@ int main() {
         .trader_id = 20,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 101.00,
+        .price = 101,
         .quantity = 50,
         .original_quantity = 50,
         .timestamp = 2
@@ -31,7 +31,7 @@ int main() {
 
     assert(result.trades.size() == 1);
     assert(result.trades[0].quantity == 50);
-    assert(result.trades[0].price == 100.00);
+    assert(result.trades[0].price == 100);
     assert(result.trades[0].buyer_id == 20);
     assert(result.trades[0].seller_id == 10);
     assert(result.order.status == market::OrderStatus::Filled);
@@ -42,7 +42,7 @@ int main() {
         .trader_id = 20,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 101.00,
+        .price = 101,
         .quantity = 40,
         .original_quantity = 40,
         .timestamp = 3
@@ -50,7 +50,7 @@ int main() {
 
     assert(result.trades.size() == 1);
     assert(result.trades[0].quantity == 40);
-    assert(book.best_ask().value() == 100.00);
+    assert(book.best_ask().value() == 100);
     assert(book.find_order(1)->quantity == 10);
 
     // A limit buy below the best ask does not trade and rests in the book.
@@ -59,7 +59,7 @@ int main() {
         .trader_id = 30,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 99.00,
+        .price = 99,
         .quantity = 5,
         .original_quantity = 5,
         .timestamp = 4
@@ -67,7 +67,7 @@ int main() {
 
     assert(result.trades.empty());
     assert(result.order.status == market::OrderStatus::Open);
-    assert(book.best_bid().value() == 99.00);
+    assert(book.best_bid().value() == 99);
 
     // A limit sell above the best bid does not trade either.
     result = engine.submit_order({
@@ -75,7 +75,7 @@ int main() {
         .trader_id = 40,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 105.00,
+        .price = 105,
         .quantity = 5,
         .original_quantity = 5,
         .timestamp = 5
@@ -89,14 +89,14 @@ int main() {
         .trader_id = 40,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 99.00,
+        .price = 99,
         .quantity = 3,
         .original_quantity = 3,
         .timestamp = 6
     });
 
     assert(result.trades.size() == 1);
-    assert(result.trades[0].price == 99.00);
+    assert(result.trades[0].price == 99);
     assert(book.find_order(4)->quantity == 2);
 
     return 0;

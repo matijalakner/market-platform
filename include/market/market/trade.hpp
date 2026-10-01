@@ -13,7 +13,7 @@ struct Trade {
     TraderId buyer_id = 0;
     TraderId seller_id = 0;
 
-    Price price = 0.0;
+    Price price = 0;
     Quantity quantity = 0;
 
     Timestamp timestamp = 0;

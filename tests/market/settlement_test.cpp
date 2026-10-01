@@ -22,7 +22,7 @@ int main() {
         .sell_order_id = 20,
         .buyer_id = 1,
         .seller_id = 2,
-        .price = 100.0,
+        .price = 100,
         .quantity = 20,
         .timestamp = 1
     };

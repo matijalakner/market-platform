@@ -23,7 +23,7 @@ int main() {
         .trader_id = 2,
         .side = market::Side::Sell,
         .type = market::OrderType::Limit,
-        .price = 100.0,
+        .price = 100,
         .quantity = 20,
         .timestamp = 1
     };
@@ -32,7 +32,7 @@ int main() {
         .trader_id = 1,
         .side = market::Side::Buy,
         .type = market::OrderType::Limit,
-        .price = 105.0,  // willing to pay more than the ask: price improvement
+        .price = 105,  // willing to pay more than the ask: price improvement
         .quantity = 20,
         .timestamp = 2
     };
@@ -40,7 +40,7 @@ int main() {
     market.submit_order(sell_order);
     auto trades = market.submit_order(buy_order);
     assert(trades.size() == 1);
-    assert(trades[0].price == 100.0);
+    assert(trades[0].price == 100);
 
     bool success = settlement.settle(trades[0]);
     assert(success);

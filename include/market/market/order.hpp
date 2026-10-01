@@ -12,10 +12,10 @@ struct Order {
     OrderType type = OrderType::Limit;
     OrderStatus status = OrderStatus::New;
 
-    // For limit orders: the limit price.
+    // For limit orders: the limit price (ticks).
     // For market buy orders: the maximum price the trader is willing to pay
     // (needed so the right amount of cash can be reserved).
-    Price price = 0.0;
+    Price price = 0;
 
     Quantity quantity = 0;           // remaining quantity
     Quantity original_quantity = 0;

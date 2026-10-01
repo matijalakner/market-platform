@@ -6,7 +6,9 @@ namespace market {
 
 class Trader {
 public:
-    Trader(TraderId id, double cash, Quantity asset_quantity);
+    // `short_limit` is the number of assets the trader may sell that it does
+    // not own. 0 (the default) disables short selling.
+    Trader(TraderId id, double cash, Position asset_quantity, Quantity short_limit = 0);
 
     TraderId id() const;
 
@@ -14,9 +16,11 @@ public:
     double available_cash() const;
     double reserved_cash() const;
 
-    Quantity asset_quantity() const;
+    // Signed: negative when the trader is short.
+    Position asset_quantity() const;
     Quantity available_assets() const;
     Quantity reserved_assets() const;
+    Quantity short_limit() const;
 
     void add_cash(double amount);
     bool remove_cash(double amount);
@@ -34,14 +38,25 @@ public:
     bool consume_reserved_cash(double amount);
     bool consume_reserved_assets(Quantity quantity);
 
+    // Deducts a fee, at most the cash the trader has. Returns the amount charged.
+    double charge_fee(double amount);
+
+    // Mark-to-market value and profit/loss, at a price in ticks.
+    double equity(Price mark_price) const;
+    double pnl(Price mark_price) const;
+
 private:
     TraderId id_;
 
     double cash_;
     double reserved_cash_;
 
-    Quantity asset_quantity_;
+    Position position_;
     Quantity reserved_assets_;
+    Quantity short_limit_;
+
+    double initial_cash_;
+    Position initial_position_;
 };
 
 }  // namespace market
