@@ -1,4 +1,4 @@
-# C++ Market Model
+# Market Model
 
 A modular C++20 framework for simulating a financial market: a limit order book, simulated traders with different strategies, replaceable price models, statistics and CSV output, and experiments driven by JSON files.
 
