@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(
     market-model
-    VERSION 0.2.0
-    DESCRIPTION "C++ market simulation model"
+    VERSION 0.3.0
+    DESCRIPTION "C++ market simulation, REST API and ImGui dashboard"
     LANGUAGES CXX
 )
 
@@ -12,6 +12,7 @@ project(
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release)
@@ -19,6 +20,7 @@ endif ()
 
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_DASHBOARD "Build the Dear ImGui dashboard (needs OpenGL, GLFW, libcurl)" OFF)
 
 # ==== Library ========================================
 
@@ -78,6 +80,12 @@ if (BUILD_EXAMPLES)
     #   ./build/market_simulation experiments/baseline/config.json
     add_executable(market_simulation examples/run_experiment.cpp)
     target_link_libraries(market_simulation PRIVATE market_model)
+endif ()
+
+# ==== Dashboard =====================================
+
+if (BUILD_DASHBOARD)
+    add_subdirectory(apps/dashboard)
 endif ()
 
 # ==== Tests =========================================

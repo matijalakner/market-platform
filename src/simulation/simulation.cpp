@@ -1,10 +1,21 @@
 #include "market/simulation/simulation.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <numeric>
 #include <utility>
 
 namespace market {
+
+namespace {
+
+// The experiment runner seeds the price model with config.seed as well. If the
+// simulation's own generator (agent order, activation) started from the same
+// seed, both would draw from the same underlying stream and be correlated.
+// Mixing in a constant keeps runs reproducible but the streams independent.
+constexpr std::uint64_t kSimulationStreamSalt = 0x9E3779B97F4A7C15ULL;
+
+}  // namespace
 
 Simulation::Simulation(
     const SimulationConfig& config,
@@ -18,7 +29,7 @@ Simulation::Simulation(
       fundamental_value_(fundamental_value),
       traders_(traders),
       settlement_(traders, config.fee_rate),
-      rng_(config.seed) {}
+      rng_(config.seed ^ kSimulationStreamSalt) {}
 
 void Simulation::add_agent(std::unique_ptr<Agent> agent) {
     agents_.push_back(std::move(agent));

@@ -1,0 +1,37 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  core:
+    name: C++ library and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DBUILD_DASHBOARD=OFF
+      - run: cmake --build build --parallel
+      - run: ctest --test-dir build --output-on-failure
+
+  dashboard:
+    name: ImGui dashboard builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libglfw3-dev libcurl4-openssl-dev libgl1-mesa-dev
+      - run: scripts/setup_dependencies.sh
+      - run: cmake -S . -B build -DBUILD_DASHBOARD=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF
+      - run: cmake --build build --parallel
+
+  api:
+    name: API tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest

@@ -6,10 +6,12 @@ out/
 # Compiled files
 *.o
 *.obj
-*.exe
-*.dll
+*.a
 *.so
 *.dylib
+*.dll
+*.exe
+*.out
 
 # IDE
 .vscode/
@@ -19,5 +21,34 @@ out/
 .DS_Store
 Thumbs.db
 
-# Generated data
-data/output/
+# Dependencies fetched by scripts/setup_dependencies.sh
+external/
+
+# Simulation output (market.csv, traders.csv, charts)
+output/
+
+# Dear ImGui window layout, written next to the executable's working directory
+imgui.ini
+
+# Python
+.venv/
+api/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+api/*.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Core dumps. Anchored to the repository root: an unanchored "core" would also
+# ignore src/core/ and include/market/core/.
+/core
+/core.[0-9]*
+*.log
